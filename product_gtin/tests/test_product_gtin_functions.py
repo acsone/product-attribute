@@ -42,10 +42,9 @@ class TestProductGtin(common.TransactionCase):
         self.assertFalse(self.aean._is_pair(5), 'Should be False')
         self.assertFalse(self.aean._is_pair(77), 'Should be False')
 
-    """The codes have been tested against
-    http://www.hipaaspace.com/Medical_Data_Validation/Universal_Product_Code/
-    UPC_Validation.aspx  # noqa
-    """
+    # The codes have been tested against
+    # http://www.hipaaspace.com/Medical_Data_Validation/Universal_Product_Code/
+    # UPC_Validation.aspx noqa
     def test_upc_codes(self):
         for code in VALID_UPC_CODES:
             self.assertTrue(self.aean._check_upc(code))
