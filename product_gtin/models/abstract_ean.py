@@ -35,7 +35,7 @@ class AbstractEan(models.AbstractModel):
             return False
         sum = 0
         ean_len = int(len(eancode))
-        for i in range(ean_len-1):
+        for i in range(ean_len - 1):
             if self._is_pair(i):
                 sum += 3 * int(eancode[i])
             else:
@@ -61,14 +61,14 @@ class AbstractEan(models.AbstractModel):
             return False
         sum_pair = 0
         ean_len = int(len(upccode))
-        for i in range(ean_len-1):
+        for i in range(ean_len - 1):
             if self._is_pair(i):
                 sum_pair += int(upccode[i])
         sum = sum_pair * 3
-        for i in range(ean_len-1):
+        for i in range(ean_len - 1):
             if not self._is_pair(i):
                 sum += int(upccode[i])
-        check = ((sum/10 + 1) * 10) - sum
+        check = ((sum / 10 + 1) * 10) - sum
         return check == int(upccode[-1])
 
     @api.model
@@ -76,7 +76,6 @@ class AbstractEan(models.AbstractModel):
         """Check if the given ean code answer ean13 requirements
         For more details:
         http://en.wikipedia.org/wiki/International_Article_Number_%28EAN%29
-    
         :param eancode: string, ean-13 code
         :return: boolean
         """
@@ -87,8 +86,8 @@ class AbstractEan(models.AbstractModel):
             return False
         sum = 0
         ean_len = int(len(eancode))
-        for i in range(ean_len-1):
-            pos = int(ean_len-2-i)
+        for i in range(ean_len - 1):
+            pos = int(ean_len - 2 - i)
             if self._is_pair(i):
                 sum += 3 * int(eancode[pos])
             else:
@@ -119,7 +118,7 @@ class AbstractEan(models.AbstractModel):
         if self.barcode:
             barcode = self.barcode
             nb_digit = len(barcode)
-            if not nb_digit in self._DICT_CHECK_EAN:
+            if nb_digit not in self._DICT_CHECK_EAN:
                 raise ValidationError(_('Size of EAN/GTIN code is not valid'))
             try:
                 int(barcode)
