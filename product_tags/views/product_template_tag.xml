@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 ACSONE SA/NV
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+
+<odoo>
+
+    <record model="ir.ui.view" id="product_template_tag_form_view">
+        <field name="name">product.template.tag.form (in product_tags)</field>
+        <field name="model">product.template.tag</field>
+        <field name="arch" type="xml">
+            <form string="Product Label">
+                <group col="4">
+                    <field name="name"/>
+                    <field name="active"/>
+                    <field name="parent_id"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="product_template_tag_tree_view">
+        <field name="name">product.template.tag.tree (in product_tags)</field>
+        <field name="model">product.template.tag</field>
+        <field name="arch" type="xml">
+            <tree string="Product Labels">
+                <field name="display_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="product_template_tag_act_window">
+        <field name="name">Product Labels</field>
+        <field name="res_model">product.template.tag</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to create a new product label.
+            </p>
+            <p>
+                Manage product labels to better classify them for tracking and analysis purposes.
+                A product may have several labels and labels have a hierarchical structure: a product with a label has also the parent label.
+            </p>
+        </field>
+    </record>
+
+    <record model="ir.ui.menu" id="product_template_tag_menu">
+        <field name="name">Product Labels</field>
+        <field name="parent_id" ref="stock.menu_product_in_config_stock"/>
+        <field name="action" ref="product_template_tag_act_window"/>
+        <field name="sequence" eval="16"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2016 ACSONE SA/NV
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+
+<odoo>
+
+    <record model="product.template.tag" id="product_template_tag_demo_1">
+        <field name="name">Services</field>
+    </record>
+
+    <record model="product.template.tag" id="product_template_tag_demo_2">
+        <field name="name">Electronics</field>
+    </record>
+
+    <record model="product.template.tag" id="product_template_tag_demo_3">
+        <field name="name">Gadgets</field>
+        <field name="parent_id" ref="product_template_tag_demo_2"/>
+    </record>
+
+    <record model="product.template.tag" id="product_template_tag_demo_4">
+        <field name="name">Computer spare parts</field>
+        <field name="parent_id" ref="product_template_tag_demo_2"/>
+    </record>
+
+    <record model="product.template.tag" id="product_template_tag_demo_5">
+        <field name="name">Computer widgets</field>
+        <field name="parent_id" ref="product_template_tag_demo_2"/>
+    </record>
+
+</odoo>
