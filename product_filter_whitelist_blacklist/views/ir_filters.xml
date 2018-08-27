@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2018 ACSONE SA/NV
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+
+<odoo>
+
+    <record model="ir.ui.view" id="ir_filters_form_view">
+        <field name="name">ir.filters.form (in product_filter_whitelist_blacklist)</field>
+        <field name="model">ir.filters</field>
+        <field name="inherit_id" ref="base.ir_filters_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='domain']/parent::group" position="after">
+                <group>
+                    <field name="product_blacklist_ids" context="{'default_type': 'blacklist'}" attrs="{'invisible': [('model_id', '!=', 'product.template')]}">
+                        <tree>
+                            <field name="product_template_id"/>
+                        </tree>
+                        <form>
+                            <group>
+                                <field name="product_template_id"/>
+                                <field name="type" invisible="1"/>
+                            </group>
+                        </form>
+                    </field>
+                    <field name="product_whitelist_ids" context="{'default_type': 'whitelist'}" attrs="{'invisible': [('model_id', '!=', 'product.template')]}">
+                        <tree>
+                            <field name="product_template_id"/>
+                        </tree>
+                        <form>
+                            <group>
+                                <field name="product_template_id"/>
+                                <field name="type" invisible="1"/>
+                            </group>
+                        </form>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
