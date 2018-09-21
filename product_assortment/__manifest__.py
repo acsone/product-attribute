@@ -3,11 +3,9 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
-    'name': 'Product Filter Whitelist Blacklist',
+    'name': 'Product Assortment',
     'summary': """
-        Adds the ability to add products to blacklist or whitelist 
-        products filters (new method on filter object).
-        This has no influence on interface filtering""",
+        Adds the ability to manage products assortment""",
     'version': '10.0.1.0.0',
     'license': 'AGPL-3',
     'author': 'ACSONE SA/NV,Odoo Community Association (OCA)',
@@ -15,9 +13,9 @@
     'depends': [
         'base',
         'product',
+        'web_widget_domain_v11',
     ],
     'data': [
-        'views/ir_filters.xml',
-        'security/security.xml',
+        'views/product_assortment.xml',
     ],
 }
