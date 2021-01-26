@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2020 ForgeFlow
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+  <record id="abc_classification_product_level_form_view" model="ir.ui.view">
+    <field name="name">abc.classification.product.level.form (in product_abc_classification_base)</field>
+    <field name="model">abc.classification.product.level</field>
+    <field name="arch" type="xml">
+      <form string="ABC Classification Product Level">
+        <sheet>
+            <div
+                  class="alert alert-danger"
+                  role="alert"
+                  attrs="{'invisible': [('flag','=',False)]}"
+                >Computed level differs from the specified level</div>
+          <group>
+            <field name="display_name" />
+            <field name="profile_id" />
+            <field name="product_id"/>
+            <field name="computed_level_id"/>
+            <field name="level_id"  domain="[('profile_id', '=', profile_id)]"/>
+            <field name="manual_level_id" class="oe_edit_only"/>
+            <field name="flag" invisible="1"/>
+          </group>
+        </sheet>
+        <div class="oe_chatter">
+          <field name="message_follower_ids" widget="mail_followers"/>
+          <field name="message_ids" widget="mail_thread"/>
+        </div>
+      </form>
+    </field>
+  </record>
+  <record id="abc_classification_product_level_tree_view" model="ir.ui.view">
+    <field name="name">abc.classification.product.level.tree (in product_abc_classification_base)</field>
+    <field name="model">abc.classification.product.level</field>
+    <field name="arch" type="xml">
+      <tree decoration-danger="flag == True">
+        <field name="product_id" />
+        <field name="level_id" />
+        <field name="computed_level_id"/>
+        <field name="flag" invisible="1"/>
+      </tree>
+    </field>
+  </record>
+  <record model="ir.ui.view" id="abc_classification_product_level_search_view">
+    <field name="name">abc.classification.product.level.search (in product_abc_classification_base)</field>
+    <field name="model">abc.classification.product.level</field>
+    <field name="arch" type="xml">
+        <search string="Abc classification">
+            <filter string="Classification not in sync with computed" name="has_flag" domain="[('flag','=',True)]"/>
+        </search>
+    </field>
+  </record>
+
+    <record id="abc_classification_product_level_action" model="ir.actions.act_window">
+    <field name="name">Products ABC Classification</field>
+    <field name="res_model">abc.classification.product.level</field>
+    <field name="view_mode">tree,form</field>
+  </record>
+  <menuitem
+    action="abc_classification_product_level_action"
+    id="menu_abc_classification_product_level_config_stock"
+    parent="stock.menu_stock_inventory_control"
+    sequence="99"
+  />
+</odoo>

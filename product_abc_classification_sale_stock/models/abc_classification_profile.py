@@ -3,97 +3,156 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from datetime import datetime, timedelta
+from operator import attrgetter
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class AbcClassificationProfile(models.Model):
 
     _inherit = "abc.classification.profile"
 
-    profile_type = fields.Selection(selection_add=[("stock", "Stock")])
+    profile_type = fields.Selection(
+        selection_add=[
+            (
+                "sale_stock",
+                "Based on the count of delivered sale order line by product",
+            )
+        ]
+    )
+    warehouse_id = fields.Many2one(
+        "stock.warehouse",
+        "Warehouse",
+        ondelete="cascade",
+        default=lambda self: self.env["stock.warehouse"].search(
+            [("company_id", "=", self.env.user.company_id.id)], limit=1
+        ),
+    )
+
+    @api.constrains("profile_type", "warehouse_id")
+    def _check_warehouse_id(self):
+        for rec in self:
+            if rec.profile_type == "sale_stock" and not rec.warehouse_id:
+                raise ValidationError(
+                    _(
+                        "You must specify a warehouse for {profile_name}"
+                    ).forman(profile_name=rec.name)
+                )
 
     def _fill_initial_product_data(self, date):
         product_list = []
-        if self.profile_type == "stock":
+        if self.profile_type == "sale_stock":
             return self._fill_data(date, product_list)
         return product_list, 0
 
-    def _fill_data(self, date, product_list):
+    def _get_data(self, from_date=None):
         self.ensure_one()
-        warehouse = self.env.ref("stock.warehouse0")
+        from_date = (
+            from_date
+            if from_date
+            else fields.Datetime.to_string(
+                datetime.today() - timedelta(days=self.period)
+            )
+        )
+        customer_location_ids = (
+            self.env["stock.location"].search([("usage", "=", "customer")]).ids
+        )
+        # Count the number of delivered order line by product linked to a
+        # stock_move with a customer location as destination and a date later
+        # than the given date
         self.env.cr.execute(
-            """ SELECT sol.product_id product_id, so.warehouse_id warehouse_id, COUNT(sol.id) number_of_so_lines
+            """ SELECT
+                        sol.product_id product_id,
+                        COUNT(sol.id) number_of_so_lines
                     FROM
                         sale_order so
                     JOIN
-                        sale_order_line sol ON sol.order_id = so.id
+                        sale_order_line sol ON
+                        sol.order_id = so.id
                     JOIN
-                        stock_move sm ON sol.id = sm.order_line_id
-                    JOIN
-                        abc_classification_profile_product_rel rel ON rel.product_id = sol.product_id
+                        abc_classification_profile_product_rel rel
+                        ON rel.product_id = sol.product_id
                     WHERE sol.qty_delivered > 0
-                        AND sm.date > %(start_date)s
                         AND rel.profile_id = %(profile_id)s
-                    GROUP BY so.warehouse_id, sol.product_id
+                        AND so.warehouse_id = %(current_warehouse_id)s
+                    AND EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                stock_move sm
+                            JOIN
+                                procurement_order po
+                                on po.id = sm.procurement_id
+                            WHERE
+                                sm.date > %(start_date)s
+                                AND sm.location_dest_id in %(customer_loc_ids)s
+                                AND po.sale_line_id = sol.id
+                        )
+
+                    GROUP BY sol.product_id
                     ORDER BY number_of_so_lines DESC
         """,
             {
-                "start_date": date,
-                "current_warehouse_id": warehouse.id,
+                "start_date": from_date,
+                "current_warehouse_id": self.warehouse_id.id,
                 "profile_id": self.id,
+                "customer_loc_ids": tuple(customer_location_ids),
             },
         )
 
         result = self.env.cr.fetchall()
         total = 0
+        product_list = []
         for r in result:
             product_data = {
                 "product": self.env["product.product"].browse(r[0]),
                 "warehouse": self.env["stock.warehouse"].browse(r[1]),
-                "number_of_so_lines": int(r[2]),
+                "number_of_so_lines": int(r[1]),
             }
-            total += int(r[2])
+            total += int(r[1])
             product_list.append(product_data)
         return product_list, total
 
-    @api.model
+    def _build_ordered_level_cumulative_percentage(self):
+        """Return an ordered list of tuple of level, cumulative percentage
+
+        The ordering is based on the level with the higher percentage first
+        """
+        self.ensure_one()
+        levels = self.level_ids.sorted(
+            key=attrgetter("percentage"), reverse=True
+        )
+        percentages = levels.mapped("percentage")
+        cum_percentages = []
+        previous_percentage = None
+        for i, perc in enumerate(percentages):
+            if i == 0:
+                percentage_to_append = perc
+                cum_percentages.append(percentage_to_append)
+            else:
+                percentage_to_append = previous_percentage + perc
+                cum_percentages.append(percentage_to_append)
+            previous_percentage = percentage_to_append
+
+        return list(zip(levels, cum_percentages))
+
+    @api.multi
     def _compute_abc_classification(self):
-        def _get_sort_key_value(data):
-            return data["number_of_so_lines"]
-
-        def _get_sort_key_percentage(rec):
-            return rec.percentage
-
-        profiles = self.search([]).filtered(lambda p: p.level_ids)
-
+        to_compute = self.filtered((lambda p: p.profile_type == "sale_stock"))
+        remaining = self - to_compute
+        res = None
+        if remaining:
+            res = super(
+                AbcClassificationProfile, remaining
+            )._compute_abc_classification()
         ProductClassification = self.env["abc.classification.product.level"]
 
-        for profile in profiles:
-            start_date = fields.Datetime.to_string(
-                datetime.today() - timedelta(days=profile.period)
+        for profile in to_compute:
+            product_list, total = profile._get_data()
+            level_percentage = (
+                profile._build_ordered_level_cumulative_percentage()
             )
-
-            product_list, total = profile._fill_initial_product_data(start_date)
-
-            levels = profile.level_ids.sorted(
-                key=_get_sort_key_percentage, reverse=True
-            )
-            percentages = levels.mapped("percentage")
-            cum_percentages = []
-            previous_percentage = None
-            for i, perc in enumerate(percentages):
-                if i == 0:
-                    percentage_to_append = perc
-                    cum_percentages.append(percentage_to_append)
-                else:
-                    percentage_to_append = previous_percentage + perc
-                    cum_percentages.append(percentage_to_append)
-                previous_percentage = percentage_to_append
-
-            level_percentage = list(zip(levels, cum_percentages))
-
             level, percentage = level_percentage.pop(0)
             previous_data = {}
             for i, product_data in enumerate(product_list):
@@ -114,9 +173,12 @@ class AbcClassificationProfile(models.Model):
                     )
                 )
                 if product_data["cumulative_percentage"] > 100:
-                    raise UserError(_("Cumulative percentage greater than 100."))
+                    raise UserError(
+                        _("Cumulative percentage greater than 100.")
+                    )
 
-                # Compute ABC classification for the products based on the cumulative percentage
+                # Compute ABC classification for the products based on the
+                # cumulative percentage
 
                 if (
                     product_data["cumulative_percentage"] > percentage
@@ -126,14 +188,16 @@ class AbcClassificationProfile(models.Model):
 
                 product_abc_classification = product_data[
                     "product"
-                ].abc_product_classification_level_ids.filtered(
+                ].abc_classification_product_level_ids.filtered(
                     lambda p, profile: p.profile_id == profile.id
                 )
 
                 if product_abc_classification:
-                    product_abc_classification.write({"computed_level_id": level.id})
+                    product_abc_classification.write(
+                        {"computed_level_id": level.id}
+                    )
                 else:
-                    product_abc_classification = ProductClassification.create(
+                    ProductClassification.create(
                         {
                             "product_id": product_data["product"].id,
                             "profile_id": profile.id,
@@ -142,3 +206,4 @@ class AbcClassificationProfile(models.Model):
                     )
 
                 previous_data = product_data
+        return res

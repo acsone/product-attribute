@@ -9,7 +9,7 @@
     <field name="arch" type="xml">
       <field name="categ_id" position="after">
         <field
-          name="abc_product_classification_level_ids"
+          name="abc_classification_product_level_ids"
           optional="hide"
           widget="many2many_tags"
           attrs="{'invisible':[('type','!=','product')]}"
@@ -27,7 +27,7 @@
           <group>
             <group>
               <field
-                name="abc_product_classification_level_ids"
+                name="abc_classification_product_level_ids"
                 widget="many2many_tags"
               />
               <field name="abc_classification_profile_ids" widget="many2many_tags" />
