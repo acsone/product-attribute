@@ -105,6 +105,17 @@ class TestABCClassificationProfile(SavepointCase):
                 "abc_classification_profile_ids": [(4, cls.stock_profile.id)],
             }
         )
+        # Special case where the product is not yet sold nor delivered
+        cls.product_new = cls.env["product.product"].create(
+            {
+                "name": "product_new",
+                "uom_id": cls.env.ref("product.product_uom_unit").id,
+                "type": "product",
+                "default_code": "345789733",
+                "tracking": "none",
+                "abc_classification_profile_ids": [(4, cls.stock_profile.id)],
+            }
+        )
 
         cls._create_availability(cls.product1)
         cls._create_availability(cls.product2)
@@ -234,3 +245,4 @@ class TestABCClassificationProfile(SavepointCase):
         self._assertLevelIs(self.product2, "b")
         self._assertLevelIs(self.product6, "b")
         self._assertLevelIs(self.product4, "c")
+        self._assertLevelIs(self.product_new, "c")

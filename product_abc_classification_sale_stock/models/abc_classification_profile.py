@@ -102,16 +102,38 @@ class AbcClassificationProfile(models.Model):
         )
 
         result = self.env.cr.fetchall()
+        # Get All products with the profile...
+        self.env.cr.execute(
+            """
+            SELECT
+                product_id
+            FROM
+                abc_classification_profile_product_rel
+            WHERE
+                profile_id = %(profile_id)s
+        """,
+            {"profile_id": self.id},
+        )
+        all_product_ids = {r[0] for r in self.env.cr.fetchall()}
         total = 0
         product_list = []
         for r in result:
+            product_id = r[0]
             product_data = {
-                "product": self.env["product.product"].browse(r[0]),
-                "warehouse": self.env["stock.warehouse"].browse(r[1]),
+                "product": self.env["product.product"].browse(product_id),
                 "number_of_so_lines": int(r[1]),
             }
             total += int(r[1])
             product_list.append(product_data)
+            all_product_ids.remove(product_id)
+        # Add all products not sold or not delivered into this timelapse
+        for product_id in all_product_ids:
+            product_list.append(
+                {
+                    "product": self.env["product.product"].browse(product_id),
+                    "number_of_so_lines": 0,
+                }
+            )
         return product_list, total
 
     def _build_ordered_level_cumulative_percentage(self):
