@@ -40,7 +40,6 @@ class AbcClassificationProductLevel(models.Model):
         "product.product",
         string="Product",
         index=True,
-        readonly=True,
         required=True,
         ondelete="cascade",
     )
@@ -54,8 +53,11 @@ class AbcClassificationProductLevel(models.Model):
     profile_id = fields.Many2one(
         "abc.classification.profile",
         string="Profile",
-        readonly=True,
         required=True,
+    )
+    allowed_profile_ids = fields.Many2many(
+        comodel_name="abc.classification.profile",
+        related="product_id.abc_classification_profile_ids"
     )
 
     _sql_constraints = [
@@ -91,6 +93,13 @@ class AbcClassificationProductLevel(models.Model):
                         "profile as the one on the product level"
                     )
                 )
+
+    @api.onchange("product_tmpl_id")
+    def _onchange_product_tmpl_id(self):
+        for rec in self.filtered(
+            lambda a: a.product_tmpl_id.product_variant_count == 1
+        ):
+            rec.product_id = rec.product_tmpl_id.product_variant_id
 
     @api.depends("level_id", "profile_id")
     def _compute_display_name(self):

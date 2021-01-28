@@ -10,11 +10,12 @@
     "version": "10.0.1.0.0",
     "license": "AGPL-3",
     "author": "ACSONE SA/NV, ForgeFlow, Odoo Community Association (OCA)",
-    "depends": ["product", "stock"],
+    "depends": ["product", "stock", "web_m2x_options"],
     "data": [
         "views/abc_classification_product_level.xml",
         "views/abc_classification_profile.xml",
         "views/product_template.xml",
+        "views/product_product.xml",
         "security/ir.model.access.csv",
         "data/ir_cron.xml",
     ],
