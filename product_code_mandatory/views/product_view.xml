@@ -9,7 +9,7 @@
                 <attribute
                     name="attrs"
                 >{'invisible': [('product_variant_count', '&gt;', 1)],
-                    'required': [('product_variant_count', '=', 1)]}</attribute>
+                    'required': [('product_variant_count', '&lt;=', 1)]}</attribute>
             </field>
         </field>
     </record>
