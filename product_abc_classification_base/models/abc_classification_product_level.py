@@ -4,7 +4,7 @@
 
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
-
+import copy
 
 class AbcClassificationProductLevel(models.Model):
     _name = "abc.classification.product.level"
@@ -149,12 +149,27 @@ class AbcClassificationProductLevel(models.Model):
 
     def write(self, vals):
         values = vals.copy()
+        res = False
         if "profile_id" in values:
+            # If profile_id in values : we are changing profile for all the recordset
             profile = self.env["abc.classification.profile"].browse(values['profile_id'])
+            values, recordset = self._auto_apply_computed_level_to_manual(profile, values)
+            res = super(AbcClassificationProductLevel, recordset).write(values)
         else:
-            profile = self.mapped("profile_id")
+            # Maybe several profiles
+            profiles = self.mapped("profile_id")
+            for profile in profiles:
+                values, recordset = self._auto_apply_computed_level_to_manual(profile, values)
+                res = super(AbcClassificationProductLevel, recordset).write(values)
+        return res 
 
+    def _auto_apply_computed_level_to_manual(self, profile, values):
+        recordset = self
+        values = copy.deepcopy(values)
         if profile.auto_apply_computed_value and "computed_level_id" in values:
             values["manual_level_id"] = values["computed_level_id"]
-        return super(AbcClassificationProductLevel, self).write(values)
-
+            if "profile_id" not in values:
+                # Retrieve only recordset related to current level profile
+                level = self.env["abc.classification.level"].browse(values["computed_level_id"])
+                recordset = self.filtered(lambda p: p.profile_id.id == level.profile_id.id)
+        return values, recordset

@@ -27,6 +27,22 @@ class TestABCClassificationProductLevel(ABCClassificationLevelCase):
             }
         )
 
+        product_4 = cls.env["product.product"].create(
+            {
+                "name": "Test 4",
+                "uom_id": cls.uom_unit.id,
+                "uom_po_id": cls.uom_unit.id,
+            }
+        )
+        cls.product_level2 = cls.ProductLevel.create(
+            {
+                "product_id": product_4.id,
+                "manual_level_id": cls.classification_level_bis_b.id,
+                "computed_level_id": cls.classification_level_bis_a.id,
+                "profile_id": cls.classification_profile_bis.id
+            }
+        )
+
     @classmethod
     def _create_product_levels(cls):
         product_2 = cls.env["product.product"].create(
@@ -44,6 +60,7 @@ class TestABCClassificationProductLevel(ABCClassificationLevelCase):
                 "uom_po_id": cls.uom_unit.id,
             }
         )
+
         cls.ProductLevel.create(
             {
                 "product_id": product_2.id,
@@ -60,7 +77,6 @@ class TestABCClassificationProductLevel(ABCClassificationLevelCase):
                 "profile_id": cls.classification_profile.id
             }
         )
-
     def test_00(self):
         """
         Test case:
@@ -356,3 +372,23 @@ class TestABCClassificationProductLevel(ABCClassificationLevelCase):
             self.assertEqual(level.manual_level_id, self.classification_level_a)
             self.assertEqual(level.computed_level_id, self.classification_level_a)
             self.assertEqual(level.level_id, self.classification_level_a)
+
+
+    def test_12_auto_apply_several_profiles(self):
+        self.classification_profile.auto_apply_computed_value = True
+        self.classification_profile_bis.auto_apply_computed_value = True
+        levels_origin = self.ProductLevel.search([("profile_id", "=", self.classification_profile.id)])
+        levels_bis = self.ProductLevel.search([("profile_id", "=", self.classification_profile_bis.id)])
+
+        levels = levels_origin | levels_bis
+        
+        levels.write({
+            "computed_level_id": self.classification_level_bis_a.id
+        })
+        self.assertEqual(levels_origin.computed_level_id, self.classification_level_a)
+        self.assertEqual(levels_origin.manual_level_id, self.classification_level_a)
+        self.assertEqual(levels_origin.level_id, self.classification_level_a)
+
+        self.assertEqual(levels_bis.computed_level_id, self.classification_level_bis_a)
+        self.assertEqual(levels_bis.manual_level_id, self.classification_level_bis_a)
+        self.assertEqual(levels_bis.level_id, self.classification_level_bis_a)
