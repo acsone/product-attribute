@@ -1,0 +1,12 @@
+diff a/.github/workflows/test.yml b/.github/workflows/test.yml	(rejected hunks)
+@@ -42,10 +41,2 @@ jobs:
+           - container: ghcr.io/oca/oca-ci/py3.6-ocb14.0:latest
+-            include: "product_supplierinfo_for_customer"
+-            name: test with OCB
+-          - container: ghcr.io/oca/oca-ci/py3.6-odoo14.0:latest
+-            exclude: "product_supplierinfo_for_customer"
+-            makepot: "true"
+-            name: test with Odoo
+-          - container: ghcr.io/oca/oca-ci/py3.6-ocb14.0:latest
+-            exclude: "product_supplierinfo_for_customer"
+             name: test with OCB
