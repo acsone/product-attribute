@@ -3,7 +3,7 @@
    :alt: License: AGPL-3
 
 ==================================
-Stock Production Lot Expired Dates
+Stock Production Lot Expired Date
 ==================================
 
 This module allow to facilitate the input of stock production lot expired dates:
@@ -18,3 +18,4 @@ Contributors
 ------------
 
 * Julien Coux <julien.coux@camptocamp.com>
+* Hughes Damry <hughes.damry@acsone.eu>
