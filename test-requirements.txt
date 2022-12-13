@@ -1,0 +1,1 @@
+odoo-addon-stock-route-mto @ git+https://github.com/OCA/stock-logistics-warehouse.git@refs/pull/1580/head#subdirectory=setup/stock_route_mto
