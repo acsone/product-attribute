@@ -2,6 +2,7 @@
 # Copyright 2020 Camptocamp
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+from functools import reduce
 from itertools import groupby
 
 from psycopg2 import sql
@@ -28,7 +29,9 @@ class ProductTemplate(models.Model):
         uom_obj = self.env["uom.uom"]
         sorted_items = sorted(self, key=lambda r: r[field_name])
         for key, products_group in groupby(sorted_items, key=lambda r: r[field_name]):
-            product_ids = [product.id for product in products_group]
+            products = reduce(
+                lambda x, y: x | y, products_group, self.env["product.template"]
+            )
             new_uom = uom_obj.browse(uom_id)
             if (
                 key.category_id == new_uom.category_id
@@ -38,12 +41,12 @@ class ProductTemplate(models.Model):
                 query = sql.SQL(
                     "UPDATE product_template SET {field} = %s WHERE id in %s"
                 ).format(field=sql.Identifier(field_name))
-                self.env.cr.execute(query, (new_uom.id, tuple(product_ids)))
-                self.invalidate_cache(fnames=[field_name], ids=product_ids)
+                self.env.cr.execute(query, (new_uom.id, tuple(products.ids)))
+                products.invalidate_recordset(fnames=[field_name])
             else:
                 raise UserError(
                     _(
-                        "You can not change the unit of measure of a product "
+                        "You cannot change the unit of measure of a product "
                         "to a new unit that doesn't have the same category "
                         "and factor"
                     )
