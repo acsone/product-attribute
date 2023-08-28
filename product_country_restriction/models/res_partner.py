@@ -16,4 +16,4 @@ class ResPartner(models.Model):
 
     @api.model
     def _get_default_country_restriction_id(self):
-        return self.env.user.company_id.default_country_restriction_id
+        return self.env.company.default_country_restriction_id
