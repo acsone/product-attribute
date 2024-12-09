@@ -7,7 +7,8 @@ from odoo import fields, models
 class ProductSupplierinfo(models.Model):
     _inherit = "product.supplierinfo"
 
-    sale_margin = fields.Float(
+    sale_markup = fields.Float(
+        string="Markup (%)",
         default=0,
         digits=(16, 2),
         help="Margin to apply on price to obtain sale price",
@@ -16,6 +17,6 @@ class ProductSupplierinfo(models.Model):
     def _get_supplierinfo_pricelist_price(self):
         self.ensure_one()
         sale_price = self.price
-        if self.sale_margin:
-            sale_price = (self.price + (self.price * (self.sale_margin / 100))) or 0.0
+        if self.sale_markup:
+            sale_price = (self.price + (self.price * (self.sale_markup / 100))) or 0.0
         return sale_price

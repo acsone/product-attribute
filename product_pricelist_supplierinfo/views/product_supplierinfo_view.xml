@@ -8,9 +8,9 @@
         <field name="arch" type="xml">
             <field name="price" position="after">
                 <field
-                    name="sale_margin"
-                    string="Sale margin"
-                    groups="product_pricelist_supplierinfo.group_supplierinfo_pricelist_sale_margin"
+                    name="sale_markup"
+                    string="Markup (%)"
+                    groups="product_pricelist_supplierinfo.group_supplierinfo_pricelist_sale_markup"
                 />
             </field>
         </field>
@@ -23,13 +23,13 @@
         <field name="arch" type="xml">
             <xpath expr="//label[@for='date_start']" position="before">
                 <label
-                    for="sale_margin"
-                    groups="product_pricelist_supplierinfo.group_supplierinfo_pricelist_sale_margin"
+                    for="sale_markup"
+                    groups="product_pricelist_supplierinfo.group_supplierinfo_pricelist_sale_markup"
                 />
                 <div
-                    groups="product_pricelist_supplierinfo.group_supplierinfo_pricelist_sale_margin"
+                    groups="product_pricelist_supplierinfo.group_supplierinfo_pricelist_sale_markup"
                 >
-                    <field name="sale_margin" class="oe_inline" />
+                    <field name="sale_markup" class="oe_inline" />
                 </div>
             </xpath>
         </field>
