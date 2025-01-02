@@ -7,6 +7,7 @@ from odoo import api, fields, models
 class ProductMergeWizardLine(models.TransientModel):
 
     _name = "product.merge.wizard.line"
+    _description = "Merge Products Wizard Line"
 
     wizard_id = fields.Many2one("product.merge.wizard", string="Wizard", required=True)
     product_id = fields.Many2one(
