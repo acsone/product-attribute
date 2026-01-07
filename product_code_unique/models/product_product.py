@@ -1,7 +1,7 @@
 # Copyright (C) 2018 - TODAY, Open Source Integrators
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import models
+from odoo import api, models
 
 
 class ProductProduct(models.Model):
@@ -14,3 +14,7 @@ class ProductProduct(models.Model):
             "Internal Reference must be unique across the database!",
         )
     ]
+
+    @api.onchange()
+    def _onchange_default_code(self):
+        return
