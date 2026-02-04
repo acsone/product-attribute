@@ -34,12 +34,18 @@ class TestPricelistAssortment(BaseCommon):
                 "login": "ass_user_2",
                 "group_ids": [
                     Command.link(cls.env.ref("base.group_system").id),
+                    Command.link(
+                        cls.env.ref(
+                            "product_assortment.group_product_assortment_manager"
+                        ).id
+                    ),
                 ],
                 "email": "ass_user_2@example.com",
                 "company_id": cls.company_2.id,
                 "company_ids": [cls.company_2.id],
             }
         )
+        cls.Product.create({"name": "Normal product", "default_code": "test1234"})
 
     def _create_assortment(self):
         """
